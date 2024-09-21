@@ -4,6 +4,9 @@
 
 The Solana Airdrop Faucet is a web application designed to provide users with free SOL tokens on the Solana Devnet. It simplifies the process of obtaining SOL for developers and testers, enabling them to experiment with the Solana blockchain without any initial investment.
 
+![Solana Airdrop](https://github.com/NishantCoder108/faucet/blob/master/app/images/solana-airdrop.png)
+
+
 ## Features
 
 - **Instant Airdrops**: Users can request SOL tokens instantly with just their wallet address.
