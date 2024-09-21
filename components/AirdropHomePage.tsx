@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import solanaLogo from "@/app/images/solanaLogo.svg";
@@ -9,10 +10,14 @@ import { Label } from "./ui/label";
 import { motion } from "framer-motion";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { toast } from "sonner";
+
 const AirdropHomePage = () => {
     const [amount, setAmount] = useState(0);
     const [solBal, setSolBal] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [isAirdroping, setIsAirdroping] = useState(false);
+
     const { connection } = useConnection();
     const wallet = useWallet();
 
@@ -44,9 +49,35 @@ const AirdropHomePage = () => {
             setIsLoading(false);
         }
     };
+
+    const handleConfirmAirdrop = async () => {
+        setIsAirdroping(true);
+        console.log({ amount });
+
+        try {
+            if (!wallet.publicKey)
+                throw new Error("Wallet public key is missing!");
+            const airdropAmount = await connection.requestAirdrop(
+                wallet.publicKey,
+                amount * LAMPORTS_PER_SOL
+            );
+
+            toast.success("Airdrop successful!");
+            console.log({ airdropAmount });
+            setIsAirdroping(false);
+            handleRefreshBtn();
+        } catch (error) {
+            console.log({ error });
+            const err = error as Error;
+            setIsAirdroping(false);
+            toast("Airdrop failed!", {
+                description: err.message,
+            });
+        }
+    };
     useEffect(() => {
         getBalance();
-    }, []);
+    }, [wallet.connected]);
 
     return (
         <div>
@@ -130,8 +161,11 @@ const AirdropHomePage = () => {
                                     />
                                 </div>
 
-                                <Button className="w-full my-3">
-                                    {true ? (
+                                <Button
+                                    className="w-full my-3"
+                                    onClick={handleConfirmAirdrop}
+                                >
+                                    {isAirdroping ? (
                                         <motion.div
                                             className="flex items-center"
                                             initial={{ opacity: 0 }}
@@ -147,13 +181,13 @@ const AirdropHomePage = () => {
                                                     ease: "linear",
                                                 }}
                                             />
-                                            Processing Transfer...
+                                            Processing Airdropping...
                                         </motion.div>
                                     ) : (
-                                        <Button>
+                                        <div className="flex items-center justify-center">
                                             <SendIcon className="mr-2 h-4 w-4" />
                                             Confirm Airdrop
-                                        </Button>
+                                        </div>
                                     )}
                                 </Button>
                             </div>
