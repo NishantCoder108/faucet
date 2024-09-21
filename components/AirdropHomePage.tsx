@@ -46,6 +46,7 @@ const AirdropHomePage = () => {
             await getBalance();
             setIsLoading(false);
         } catch (error) {
+            console.log({ error });
             setIsLoading(false);
         }
     };
