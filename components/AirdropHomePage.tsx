@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import solanaLogo from "@/app/images/solanaLogo.svg";
 import { Input } from "./ui/input";
 import ConnectWallet from "./ConnectWallet";
@@ -7,8 +7,47 @@ import { Button } from "./ui/button";
 import { RefreshCw, SendIcon } from "lucide-react";
 import { Label } from "./ui/label";
 import { motion } from "framer-motion";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 const AirdropHomePage = () => {
     const [amount, setAmount] = useState(0);
+    const [solBal, setSolBal] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const { connection } = useConnection();
+    const wallet = useWallet();
+
+    async function getBalance() {
+        try {
+            if (wallet.publicKey) {
+                const balance = await connection.getBalance(wallet.publicKey);
+                const solBalance = balance / LAMPORTS_PER_SOL;
+
+                setSolBal(solBalance);
+                return;
+            }
+
+            throw new Error("Wallet public key is missing.");
+        } catch (error) {
+            console.log({ error });
+
+            setSolBal(0);
+        }
+    }
+
+    const handleRefreshBtn = async () => {
+        setIsLoading(true);
+
+        try {
+            await getBalance();
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
+        }
+    };
+    useEffect(() => {
+        getBalance();
+    }, []);
+
     return (
         <div>
             <div>
@@ -45,7 +84,11 @@ const AirdropHomePage = () => {
                                 <div className=" flex justify-between items-center ">
                                     <h1 className="font-semibold">Balance</h1>
 
-                                    <Button variant={"ghost"}>
+                                    <Button
+                                        variant={"ghost"}
+                                        onClick={handleRefreshBtn}
+                                        disabled={isLoading}
+                                    >
                                         {" "}
                                         <RefreshCw
                                             size={16}
@@ -54,9 +97,19 @@ const AirdropHomePage = () => {
                                         Refresh{" "}
                                     </Button>
                                 </div>
-
-                                <h1 className="p-2 my-2 bg-slate-950 font-bold text-2xl text-center ">
-                                    45 SOL{" "}
+                                {/* Show Balance */}
+                                <h1 className="px-2 py-1 my-2 bg-slate-950 font-bold text-2xl text-center ">
+                                    {isLoading ? (
+                                        <span>...</span>
+                                    ) : (
+                                        <div className="text-center">
+                                            <span className="pr-1">
+                                                {" "}
+                                                {solBal}{" "}
+                                            </span>{" "}
+                                            SOL
+                                        </div>
+                                    )}
                                 </h1>
 
                                 <div className="space-y-2 mt-2 ">
